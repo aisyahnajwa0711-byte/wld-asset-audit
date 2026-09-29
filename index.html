@@ -212,16 +212,8 @@ function startScanner() {
     { facingMode: "environment" },
 
     {
-      fps: 10,
-      qrbox: function(viewfinderWidth, viewfinderHeight) {
-  const size = Math.floor(
-    Math.min(viewfinderWidth, viewfinderHeight) * 0.8
-  );
-
-  return {
-    width: size,
-    height: size
-  };
+  fps: 15,
+  aspectRatio: 1.333333
 },
 
     function(decodedText) {
