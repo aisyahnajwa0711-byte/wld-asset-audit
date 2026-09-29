@@ -7,9 +7,7 @@
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -27,7 +25,7 @@
 
     .header h1 {
       margin: 0;
-      font-size: 24px;
+      font-size: 25px;
     }
 
     .header p {
@@ -45,13 +43,38 @@
       background: white;
       border-radius: 14px;
       padding: 20px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      box-shadow: 0 2px 10px rgba(0,0,0,.08);
+    }
+
+    .field {
+      margin-bottom: 18px;
     }
 
     label {
       display: block;
       font-weight: bold;
       margin-bottom: 8px;
+      font-size: 16px;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+      background: white;
+    }
+
+    input[readonly] {
+      background: #f1f3f5;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
     }
 
     .scan-row {
@@ -59,57 +82,57 @@
       gap: 8px;
     }
 
-    input {
-      width: 100%;
-      padding: 14px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-
-    input[readonly] {
-      background: #f1f3f5;
-    }
-
     .scan-button {
       min-width: 65px;
-      border: none;
+      border: 0;
       border-radius: 8px;
       background: #002d72;
       color: white;
-      font-size: 24px;
+      font-size: 23px;
       cursor: pointer;
     }
 
     #reader {
       width: 100%;
-      margin-top: 15px;
+      margin: 15px 0;
+      overflow: hidden;
+      border-radius: 8px;
+    }
+
+    #reader__scan_region {
+      background: transparent !important;
+    }
+
+    #reader__scan_region img {
+      display: none !important;
+    }
+
+    #reader video {
+      width: 100% !important;
+      height: auto !important;
+      object-fit: cover !important;
     }
 
     .asset-box {
       display: none;
-      margin-top: 20px;
-      padding: 16px;
       background: #f4f7fb;
       border: 1px solid #d6e1ef;
       border-radius: 10px;
+      padding: 16px;
+      margin: 15px 0 20px;
     }
 
-    .asset-box label {
-      margin-top: 12px;
-    }
-
-    .asset-box label:first-child {
-      margin-top: 0;
+    .asset-box .field:last-child {
+      margin-bottom: 0;
     }
 
     .status {
-      margin-top: 15px;
+      display: none;
       padding: 12px;
+      margin: 15px 0;
       border-radius: 8px;
       text-align: center;
       font-weight: bold;
-      display: none;
     }
 
     .loading {
@@ -118,32 +141,43 @@
       color: #002d72;
     }
 
+    .success {
+      display: block;
+      background: #e8f5e9;
+      color: #1b5e20;
+    }
+
     .error {
       display: block;
       background: #ffebee;
       color: #b71c1c;
     }
 
-    .success {
-      display: block;
-      background: #e8f5e9;
-      color: #1b5e20;
+    .audit-result {
+      font-weight: bold;
+      background: #f1f3f5;
     }
-    
-    /* Hide scanner overlay */
-#reader__scan_region {
-  background: transparent !important;
-}
 
-#reader__scan_region img {
-  display: none !important;
-}
+    .save-button {
+      width: 100%;
+      padding: 16px;
+      border: 0;
+      border-radius: 8px;
+      background: #002d72;
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+    }
 
-#reader video {
-  width: 100% !important;
-  height: auto !important;
-  object-fit: cover !important;
-}
+    .save-button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .required {
+      color: #b71c1c;
+    }
   </style>
 </head>
 
@@ -155,13 +189,14 @@
 </div>
 
 <div class="container">
+<div class="card">
 
-  <div class="card">
-
-    <label>Scan / Manual Value</label>
+  <div class="field">
+    <label>
+      Scan / Manual Value <span class="required">*</span>
+    </label>
 
     <div class="scan-row">
-
       <input
         id="scanValue"
         type="text"
@@ -174,29 +209,107 @@
         onclick="startScanner()">
         📷
       </button>
-
     </div>
+  </div>
 
-    <div id="reader"></div>
+  <div id="reader"></div>
 
-    <div id="statusMessage" class="status"></div>
+  <div id="lookupStatus" class="status"></div>
 
+  <div id="assetBox" class="asset-box">
 
-    <div id="assetBox" class="asset-box">
-
+    <div class="field">
       <label>Asset ID</label>
       <input id="assetId" readonly>
+    </div>
 
+    <div class="field">
       <label>Equipment Type</label>
       <input id="equipmentType" readonly>
+    </div>
 
+    <div class="field">
       <label>Owner Department</label>
       <input id="ownerDepartment" readonly>
-
     </div>
 
   </div>
 
+  <div class="field">
+    <label>
+      Found At <span class="required">*</span>
+    </label>
+
+    <select id="foundAt" onchange="calculateResult()">
+      <option value="">Select Department</option>
+      <option>AMR</option>
+      <option>APD</option>
+      <option>FFM</option>
+      <option>GF</option>
+      <option>Inbound</option>
+      <option>Outbound</option>
+      <option>PR</option>
+      <option>Reverse</option>
+      <option>WH2.0</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>
+      Condition <span class="required">*</span>
+    </label>
+
+    <select id="condition" onchange="calculateResult()">
+      <option value="">Select Condition</option>
+      <option>Good</option>
+      <option>Repair</option>
+      <option>Damaged</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Audit Result</label>
+    <input
+      id="auditResult"
+      class="audit-result"
+      readonly
+    >
+  </div>
+
+  <div class="field">
+    <label>
+      Checked By <span class="required">*</span>
+    </label>
+
+    <select id="checkedBy">
+      <option value="">Select Name</option>
+      <option>AISYAH</option>
+      <option>HIDAYAH</option>
+      <option>NANA</option>
+      <option>IZZAH</option>
+      <option>NAQIU</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Remarks</label>
+    <textarea
+      id="remarks"
+      placeholder="Enter remarks if any"
+    ></textarea>
+  </div>
+
+  <div id="saveStatus" class="status"></div>
+
+  <button
+    id="saveButton"
+    class="save-button"
+    type="button"
+    onclick="saveAudit()">
+    SAVE AUDIT
+  </button>
+
+</div>
 </div>
 
 
@@ -206,19 +319,18 @@ const API_URL =
   "https://script.google.com/macros/s/AKfycbzoFtzAXhSQuiiQOLsnWm1wR3m-57uFaoOQEeT9xxiUSl-ADIi0jXok8y1d7PL0L8NL/exec";
 
 let scanner = null;
+let currentAssetFound = false;
 
 
-/* =========================
-   START CAMERA
-========================= */
+/* ================================
+   SCANNER
+================================ */
 
 function startScanner() {
 
-  clearStatus();
+  clearLookupStatus();
 
-  if (scanner) {
-    return;
-  }
+  if (scanner) return;
 
   scanner = new Html5Qrcode("reader");
 
@@ -227,9 +339,9 @@ function startScanner() {
     { facingMode: "environment" },
 
     {
-  fps: 15,
-  aspectRatio: 1.333333
-},
+      fps: 15,
+      aspectRatio: 1.333333
+    },
 
     function(decodedText) {
 
@@ -238,65 +350,61 @@ function startScanner() {
       document.getElementById("scanValue").value = value;
 
       stopScanner();
-
       lookupAsset(value);
     },
 
     function() {
-      // Normal scan attempts are ignored
+      // Normal scan attempts ignored
     }
 
   ).catch(function(error) {
 
     scanner = null;
 
-    showStatus(
-      "Unable to open camera: " + error,
+    showLookupStatus(
+      "Unable to open camera.",
       "error"
     );
 
+    console.error(error);
   });
 }
 
 
-/* =========================
-   STOP CAMERA
-========================= */
-
 function stopScanner() {
 
-  if (!scanner) {
-    return;
-  }
+  if (!scanner) return;
 
   scanner.stop()
     .then(function() {
-
       scanner.clear();
       scanner = null;
-
     })
     .catch(function() {
-
       scanner = null;
-
     });
 }
 
 
-/* =========================
-   LOOKUP MASTER ASSET
-========================= */
+/* ================================
+   MASTER ASSET LOOKUP
+================================ */
 
 async function lookupAsset(value) {
 
-  if (!value) {
-    return;
-  }
+  value = String(value || "").trim();
 
-  showStatus("Checking Master Asset...", "loading");
+  if (!value) return;
+
+  currentAssetFound = false;
 
   document.getElementById("assetBox").style.display = "none";
+  document.getElementById("auditResult").value = "";
+
+  showLookupStatus(
+    "Checking Master Asset...",
+    "loading"
+  );
 
   try {
 
@@ -308,12 +416,14 @@ async function lookupAsset(value) {
     const response = await fetch(url);
 
     if (!response.ok) {
-      throw new Error("Lookup request failed.");
+      throw new Error("Lookup failed.");
     }
 
     const asset = await response.json();
 
     if (asset.found) {
+
+      currentAssetFound = true;
 
       document.getElementById("assetId").value =
         asset.assetId || "";
@@ -324,39 +434,33 @@ async function lookupAsset(value) {
       document.getElementById("ownerDepartment").value =
         asset.ownerDepartment || "";
 
-      document.getElementById("assetBox").style.display =
-        "block";
-
-      showStatus(
+      showLookupStatus(
         "Asset found successfully.",
         "success"
       );
 
     } else {
 
-      document.getElementById("assetId").value =
-        "UNKNOWN";
+      document.getElementById("assetId").value = "UNKNOWN";
+      document.getElementById("equipmentType").value = "";
+      document.getElementById("ownerDepartment").value = "";
 
-      document.getElementById("equipmentType").value =
-        "";
-
-      document.getElementById("ownerDepartment").value =
-        "";
-
-      document.getElementById("assetBox").style.display =
-        "block";
-
-      showStatus(
+      showLookupStatus(
         "UNKNOWN ASSET",
         "error"
       );
     }
 
+    document.getElementById("assetBox").style.display =
+      "block";
+
+    calculateResult();
+
   } catch (error) {
 
     console.error(error);
 
-    showStatus(
+    showLookupStatus(
       "Unable to connect to Master Asset.",
       "error"
     );
@@ -364,10 +468,7 @@ async function lookupAsset(value) {
 }
 
 
-/* =========================
-   MANUAL ENTRY
-========================= */
-
+/* Manual typing */
 document
   .getElementById("scanValue")
   .addEventListener("change", function() {
@@ -377,31 +478,223 @@ document
     if (value) {
       lookupAsset(value);
     }
-
   });
 
 
-/* =========================
-   STATUS MESSAGE
-========================= */
+/* ================================
+   AUDIT RESULT
+================================ */
 
-function showStatus(message, type) {
+function calculateResult() {
 
-  const box =
-    document.getElementById("statusMessage");
+  const scanValue =
+    document.getElementById("scanValue").value.trim();
 
-  box.textContent = message;
+  const owner =
+    document.getElementById("ownerDepartment").value;
 
-  box.className =
-    "status " + type;
+  const foundAt =
+    document.getElementById("foundAt").value;
+
+  const condition =
+    document.getElementById("condition").value;
+
+  const result =
+    document.getElementById("auditResult");
+
+  if (!scanValue || !foundAt || !condition) {
+    result.value = "";
+    return;
+  }
+
+  if (!currentAssetFound) {
+    result.value = "UNKNOWN ASSET";
+    return;
+  }
+
+  if (
+    condition === "Repair" ||
+    condition === "Damaged"
+  ) {
+    result.value = "REPAIR / DAMAGED";
+    return;
+  }
+
+  if (
+    condition === "Good" &&
+    owner === foundAt
+  ) {
+    result.value = "PASS";
+    return;
+  }
+
+  if (
+    condition === "Good" &&
+    owner !== foundAt
+  ) {
+    result.value = "WRONG LOCATION";
+  }
 }
 
 
-function clearStatus() {
+/* ================================
+   SAVE AUDIT
+================================ */
 
-  const box =
-    document.getElementById("statusMessage");
+async function saveAudit() {
 
+  const scanValue =
+    document.getElementById("scanValue").value.trim();
+
+  const foundAt =
+    document.getElementById("foundAt").value;
+
+  const condition =
+    document.getElementById("condition").value;
+
+  const checkedBy =
+    document.getElementById("checkedBy").value;
+
+  const remarks =
+    document.getElementById("remarks").value.trim();
+
+  if (
+    !scanValue ||
+    !foundAt ||
+    !condition ||
+    !checkedBy
+  ) {
+
+    showSaveStatus(
+      "Please complete all required fields.",
+      "error"
+    );
+
+    return;
+  }
+
+  const button =
+    document.getElementById("saveButton");
+
+  button.disabled = true;
+  button.textContent = "SAVING...";
+
+  showSaveStatus(
+    "Saving audit...",
+    "loading"
+  );
+
+  try {
+
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify({
+        action: "save",
+        scanValue: scanValue,
+        foundAt: foundAt,
+        condition: condition,
+        checkedBy: checkedBy,
+        remarks: remarks
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error("Save request failed.");
+    }
+
+    const result = await response.json();
+
+    if (!result.success) {
+      throw new Error(
+        result.error || "Unable to save audit."
+      );
+    }
+
+    showSaveStatus(
+      "Audit saved successfully.",
+      "success"
+    );
+
+    setTimeout(function() {
+      resetForm();
+    }, 1000);
+
+  } catch (error) {
+
+    console.error(error);
+
+    showSaveStatus(
+      "Unable to save audit. Please try again.",
+      "error"
+    );
+
+  } finally {
+
+    button.disabled = false;
+    button.textContent = "SAVE AUDIT";
+  }
+}
+
+
+/* ================================
+   RESET FOR NEXT ASSET
+================================ */
+
+function resetForm() {
+
+  document.getElementById("scanValue").value = "";
+  document.getElementById("assetId").value = "";
+  document.getElementById("equipmentType").value = "";
+  document.getElementById("ownerDepartment").value = "";
+
+  document.getElementById("foundAt").value = "";
+  document.getElementById("condition").value = "";
+  document.getElementById("auditResult").value = "";
+  document.getElementById("checkedBy").value = "";
+  document.getElementById("remarks").value = "";
+
+  document.getElementById("assetBox").style.display =
+    "none";
+
+  currentAssetFound = false;
+
+  clearLookupStatus();
+  clearSaveStatus();
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
+
+
+/* ================================
+   STATUS
+================================ */
+
+function showLookupStatus(message, type) {
+  const box = document.getElementById("lookupStatus");
+  box.textContent = message;
+  box.className = "status " + type;
+}
+
+function clearLookupStatus() {
+  const box = document.getElementById("lookupStatus");
+  box.textContent = "";
+  box.className = "status";
+}
+
+function showSaveStatus(message, type) {
+  const box = document.getElementById("saveStatus");
+  box.textContent = message;
+  box.className = "status " + type;
+}
+
+function clearSaveStatus() {
+  const box = document.getElementById("saveStatus");
   box.textContent = "";
   box.className = "status";
 }
