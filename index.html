@@ -423,8 +423,6 @@ async function lookupAsset(value) {
 
     if (asset.found) {
 
-      currentAssetFound = true;
-
       document.getElementById("assetId").value =
         asset.assetId || "";
 
@@ -434,10 +432,37 @@ async function lookupAsset(value) {
       document.getElementById("ownerDepartment").value =
         asset.ownerDepartment || "";
 
-      showLookupStatus(
-        "Asset found successfully.",
-        "success"
-      );
+      // Check if this asset has already been audited this month
+const duplicateUrl =
+  API_URL +
+  "?action=checkDuplicate&value=" +
+  encodeURIComponent(value);
+
+const duplicateResponse = await fetch(duplicateUrl);
+const duplicate = await duplicateResponse.json();
+
+if (duplicate.alreadyAudited) {
+
+  showLookupStatus(
+    "⚠️ ALREADY AUDITED — " +
+    duplicate.assetId +
+    " has already been audited for " +
+    duplicate.auditMonth +
+    ".",
+    "error"
+  );
+
+  currentAssetFound = false;
+
+} else {
+
+  showLookupStatus(
+    "Asset found successfully.",
+    "success"
+  );
+
+  currentAssetFound = true;
+}
 
     } else {
 
