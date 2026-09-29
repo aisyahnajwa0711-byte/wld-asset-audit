@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WLD Scanner Test</title>
+
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      text-align: center;
+    }
+
+    button {
+      padding: 16px 25px;
+      font-size: 18px;
+      border: 0;
+      border-radius: 10px;
+      background: #002d72;
+      color: white;
+    }
+
+    #reader {
+      max-width: 500px;
+      margin: 20px auto;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>WLD Scanner Test</h2>
+
+  <p>Test camera before building Asset Audit.</p>
+
+  <button onclick="startScanner()">📷 OPEN SCANNER</button>
+
+  <div id="reader"></div>
+
+  <div id="result"></div>
+
+  <script>
+    let scanner;
+
+    function startScanner() {
+
+      if (scanner) return;
+
+      scanner = new Html5Qrcode("reader");
+
+      scanner.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: {
+            width: 280,
+            height: 140
+          }
+        },
+
+        function(decodedText) {
+
+          document.getElementById("result").innerText =
+            "SCAN RESULT: " + decodedText;
+
+          scanner.stop().then(function() {
+            scanner.clear();
+            scanner = null;
+          });
+
+        },
+
+        function(errorMessage) {
+          // Ignore normal scan attempts
+        }
+      ).catch(function(error) {
+
+        document.getElementById("result").innerText =
+          "CAMERA ERROR: " + error;
+
+      });
+    }
+  </script>
+
+</body>
+</html>
