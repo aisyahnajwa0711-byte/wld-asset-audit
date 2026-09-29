@@ -2,93 +2,399 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>WLD Scanner Test</title>
+  <title>WLD Asset Audit</title>
 
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      text-align: center;
+    * {
+      box-sizing: border-box;
     }
 
-    button {
-      padding: 16px 25px;
-      font-size: 18px;
-      border: 0;
-      border-radius: 10px;
+    body {
+      margin: 0;
+      background: #f5f6f8;
+      font-family: Arial, sans-serif;
+      color: #222;
+    }
+
+    .header {
       background: #002d72;
       color: white;
+      text-align: center;
+      padding: 22px 15px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .header p {
+      margin: 7px 0 0;
+      font-size: 14px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .scan-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    input[readonly] {
+      background: #f1f3f5;
+    }
+
+    .scan-button {
+      min-width: 65px;
+      border: none;
+      border-radius: 8px;
+      background: #002d72;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
     }
 
     #reader {
-      max-width: 500px;
-      margin: 20px auto;
+      width: 100%;
+      margin-top: 15px;
     }
 
-    #result {
+    .asset-box {
+      display: none;
       margin-top: 20px;
-      font-size: 18px;
+      padding: 16px;
+      background: #f4f7fb;
+      border: 1px solid #d6e1ef;
+      border-radius: 10px;
+    }
+
+    .asset-box label {
+      margin-top: 12px;
+    }
+
+    .asset-box label:first-child {
+      margin-top: 0;
+    }
+
+    .status {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
       font-weight: bold;
+      display: none;
+    }
+
+    .loading {
+      display: block;
+      background: #eef3f8;
+      color: #002d72;
+    }
+
+    .error {
+      display: block;
+      background: #ffebee;
+      color: #b71c1c;
+    }
+
+    .success {
+      display: block;
+      background: #e8f5e9;
+      color: #1b5e20;
     }
   </style>
 </head>
 
 <body>
 
-  <h2>WLD Scanner Test</h2>
+<div class="header">
+  <h1>WLD Asset Audit</h1>
+  <p>Scan barcode / QR or enter the value manually</p>
+</div>
 
-  <p>Test camera before building Asset Audit.</p>
+<div class="container">
 
-  <button onclick="startScanner()">📷 OPEN SCANNER</button>
+  <div class="card">
 
-  <div id="reader"></div>
+    <label>Scan / Manual Value</label>
 
-  <div id="result"></div>
+    <div class="scan-row">
 
-  <script>
-    let scanner;
+      <input
+        id="scanValue"
+        type="text"
+        placeholder="Scan or enter value"
+      >
 
-    function startScanner() {
+      <button
+        class="scan-button"
+        type="button"
+        onclick="startScanner()">
+        📷
+      </button>
 
-      if (scanner) return;
+    </div>
 
-      scanner = new Html5Qrcode("reader");
+    <div id="reader"></div>
 
-      scanner.start(
-        { facingMode: "environment" },
-        {
-          fps: 10,
-          qrbox: {
-            width: 280,
-            height: 140
-          }
-        },
+    <div id="statusMessage" class="status"></div>
 
-        function(decodedText) {
 
-          document.getElementById("result").innerText =
-            "SCAN RESULT: " + decodedText;
+    <div id="assetBox" class="asset-box">
 
-          scanner.stop().then(function() {
-            scanner.clear();
-            scanner = null;
-          });
+      <label>Asset ID</label>
+      <input id="assetId" readonly>
 
-        },
+      <label>Equipment Type</label>
+      <input id="equipmentType" readonly>
 
-        function(errorMessage) {
-          // Ignore normal scan attempts
-        }
-      ).catch(function(error) {
+      <label>Owner Department</label>
+      <input id="ownerDepartment" readonly>
 
-        document.getElementById("result").innerText =
-          "CAMERA ERROR: " + error;
+    </div>
 
-      });
+  </div>
+
+</div>
+
+
+<script>
+
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbzoFtzAXhSQuiiQOLsnWm1wR3m-57uFaoOQEeT9xxiUSl-ADIi0jXok8y1d7PL0L8NL/exec";
+
+let scanner = null;
+
+
+/* =========================
+   START CAMERA
+========================= */
+
+function startScanner() {
+
+  clearStatus();
+
+  if (scanner) {
+    return;
+  }
+
+  scanner = new Html5Qrcode("reader");
+
+  scanner.start(
+
+    { facingMode: "environment" },
+
+    {
+      fps: 10,
+      qrbox: {
+        width: 280,
+        height: 140
+      }
+    },
+
+    function(decodedText) {
+
+      const value = decodedText.trim();
+
+      document.getElementById("scanValue").value = value;
+
+      stopScanner();
+
+      lookupAsset(value);
+    },
+
+    function() {
+      // Normal scan attempts are ignored
     }
-  </script>
+
+  ).catch(function(error) {
+
+    scanner = null;
+
+    showStatus(
+      "Unable to open camera: " + error,
+      "error"
+    );
+
+  });
+}
+
+
+/* =========================
+   STOP CAMERA
+========================= */
+
+function stopScanner() {
+
+  if (!scanner) {
+    return;
+  }
+
+  scanner.stop()
+    .then(function() {
+
+      scanner.clear();
+      scanner = null;
+
+    })
+    .catch(function() {
+
+      scanner = null;
+
+    });
+}
+
+
+/* =========================
+   LOOKUP MASTER ASSET
+========================= */
+
+async function lookupAsset(value) {
+
+  if (!value) {
+    return;
+  }
+
+  showStatus("Checking Master Asset...", "loading");
+
+  document.getElementById("assetBox").style.display = "none";
+
+  try {
+
+    const url =
+      API_URL +
+      "?action=lookup&value=" +
+      encodeURIComponent(value);
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error("Lookup request failed.");
+    }
+
+    const asset = await response.json();
+
+    if (asset.found) {
+
+      document.getElementById("assetId").value =
+        asset.assetId || "";
+
+      document.getElementById("equipmentType").value =
+        asset.equipmentType || "";
+
+      document.getElementById("ownerDepartment").value =
+        asset.ownerDepartment || "";
+
+      document.getElementById("assetBox").style.display =
+        "block";
+
+      showStatus(
+        "Asset found successfully.",
+        "success"
+      );
+
+    } else {
+
+      document.getElementById("assetId").value =
+        "UNKNOWN";
+
+      document.getElementById("equipmentType").value =
+        "";
+
+      document.getElementById("ownerDepartment").value =
+        "";
+
+      document.getElementById("assetBox").style.display =
+        "block";
+
+      showStatus(
+        "UNKNOWN ASSET",
+        "error"
+      );
+    }
+
+  } catch (error) {
+
+    console.error(error);
+
+    showStatus(
+      "Unable to connect to Master Asset.",
+      "error"
+    );
+  }
+}
+
+
+/* =========================
+   MANUAL ENTRY
+========================= */
+
+document
+  .getElementById("scanValue")
+  .addEventListener("change", function() {
+
+    const value = this.value.trim();
+
+    if (value) {
+      lookupAsset(value);
+    }
+
+  });
+
+
+/* =========================
+   STATUS MESSAGE
+========================= */
+
+function showStatus(message, type) {
+
+  const box =
+    document.getElementById("statusMessage");
+
+  box.textContent = message;
+
+  box.className =
+    "status " + type;
+}
+
+
+function clearStatus() {
+
+  const box =
+    document.getElementById("statusMessage");
+
+  box.textContent = "";
+  box.className = "status";
+}
+
+</script>
 
 </body>
 </html>
