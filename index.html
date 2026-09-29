@@ -835,26 +835,27 @@ async function lookupAndProcessAsset(value) {
     const duplicate =
       await duplicateResponse.json();
 
-    if (duplicate.alreadyAudited) {
+    /* DUPLICATE CHECK — already included in lookup */
 
-      showLookupStatus(
-        "⚠️ ALREADY AUDITED — " +
-        duplicate.assetId +
-        " has already been audited for " +
-        duplicate.auditMonth +
-        ".",
-        "error"
-      );
+if (asset.alreadyAudited) {
 
-      processingAsset = false;
+  showLookupStatus(
+    "⚠️ ALREADY AUDITED — " +
+    asset.assetId +
+    " has already been audited for " +
+    asset.auditMonth +
+    ".",
+    "error"
+  );
 
-      setTimeout(function() {
-        prepareNextAsset();
-      }, 1800);
+  processingAsset = false;
 
-      return;
-    }
+  setTimeout(function() {
+    prepareNextAsset();
+  }, 1800);
 
+  return;
+}
 
     /* DETERMINE RESULT */
 
