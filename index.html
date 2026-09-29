@@ -7,7 +7,9 @@
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
@@ -44,6 +46,13 @@
       border-radius: 14px;
       padding: 20px;
       box-shadow: 0 2px 10px rgba(0,0,0,.08);
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      margin: 0 0 18px;
+      color: #002d72;
+      font-size: 20px;
     }
 
     .field {
@@ -73,8 +82,78 @@
     }
 
     textarea {
-      min-height: 100px;
+      min-height: 85px;
       resize: vertical;
+    }
+
+    .required {
+      color: #b71c1c;
+    }
+
+    .primary-button,
+    .secondary-button,
+    .danger-button {
+      width: 100%;
+      padding: 16px;
+      border: 0;
+      border-radius: 8px;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .primary-button {
+      background: #002d72;
+      color: white;
+    }
+
+    .secondary-button {
+      background: #eef3f8;
+      color: #002d72;
+      border: 1px solid #cbd8e6;
+    }
+
+    .danger-button {
+      background: #fff3f3;
+      color: #b71c1c;
+      border: 1px solid #efc7c7;
+    }
+
+    button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .session-summary {
+      display: none;
+      background: #e8f5e9;
+      border: 1px solid #b8dfbd;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+
+    .session-summary strong {
+      color: #1b5e20;
+    }
+
+    .session-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .session-item {
+      background: white;
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    #auditArea {
+      display: none;
     }
 
     .scan-row {
@@ -83,7 +162,7 @@
     }
 
     .scan-button {
-      min-width: 65px;
+      min-width: 70px;
       border: 0;
       border-radius: 8px;
       background: #002d72;
@@ -113,26 +192,14 @@
       object-fit: cover !important;
     }
 
-    .asset-box {
-      display: none;
-      background: #f4f7fb;
-      border: 1px solid #d6e1ef;
-      border-radius: 10px;
-      padding: 16px;
-      margin: 15px 0 20px;
-    }
-
-    .asset-box .field:last-child {
-      margin-bottom: 0;
-    }
-
     .status {
       display: none;
-      padding: 12px;
+      padding: 13px;
       margin: 15px 0;
       border-radius: 8px;
       text-align: center;
       font-weight: bold;
+      line-height: 1.4;
     }
 
     .loading {
@@ -153,30 +220,109 @@
       color: #b71c1c;
     }
 
-    .audit-result {
-      font-weight: bold;
-      background: #f1f3f5;
+    .warning {
+      display: block;
+      background: #fff8e1;
+      color: #8a5a00;
     }
 
-    .save-button {
-      width: 100%;
+    .asset-box {
+      display: none;
+      background: #f4f7fb;
+      border: 1px solid #d6e1ef;
+      border-radius: 10px;
       padding: 16px;
-      border: 0;
+      margin: 15px 0;
+    }
+
+    .asset-box .field:last-child {
+      margin-bottom: 0;
+    }
+
+    .result-box {
+      display: none;
+      border-radius: 10px;
+      padding: 14px;
+      margin: 15px 0;
+      text-align: center;
+    }
+
+    .result-title {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .result-pass {
+      background: #e8f5e9;
+      color: #1b5e20;
+    }
+
+    .result-wrong {
+      background: #fff8e1;
+      color: #8a5a00;
+    }
+
+    .result-repair {
+      background: #ffebee;
+      color: #b71c1c;
+    }
+
+    .exception-area {
+      display: none;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #ddd;
+    }
+
+    .condition-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .condition-button {
+      padding: 13px 8px;
       border-radius: 8px;
-      background: #002d72;
-      color: white;
-      font-size: 17px;
+      border: 1px solid #ccc;
+      background: white;
       font-weight: bold;
       cursor: pointer;
+      font-size: 15px;
     }
 
-    .save-button:disabled {
-      opacity: .55;
-      cursor: not-allowed;
+    .condition-button.active {
+      background: #b71c1c;
+      color: white;
+      border-color: #b71c1c;
     }
 
-    .required {
-      color: #b71c1c;
+    .small-note {
+      font-size: 13px;
+      color: #666;
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    .audit-count {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .audit-count strong {
+      color: #002d72;
+      font-size: 18px;
+    }
+
+    .manual-save {
+      display: none;
+      margin-top: 12px;
+    }
+
+    .change-session {
+      margin-top: 12px;
     }
   </style>
 </head>
@@ -185,131 +331,226 @@
 
 <div class="header">
   <h1>WLD Asset Audit</h1>
-  <p>Scan barcode / QR or enter the value manually</p>
+  <p>Fast Audit Session</p>
 </div>
 
 <div class="container">
-<div class="card">
 
-  <div class="field">
-    <label>
-      Scan / Manual Value <span class="required">*</span>
-    </label>
+  <!-- =========================
+       AUDIT SESSION SETUP
+  ========================== -->
+  <div id="setupCard" class="card">
 
-    <div class="scan-row">
-      <input
-        id="scanValue"
-        type="text"
-        placeholder="Scan or enter value"
-      >
+    <h2 class="section-title">Audit Setup</h2>
+
+    <div class="field">
+      <label>
+        Found At <span class="required">*</span>
+      </label>
+
+      <select id="sessionFoundAt">
+        <option value="">Select Department</option>
+        <option>AMR</option>
+        <option>APD</option>
+        <option>FFM</option>
+        <option>GF</option>
+        <option>Inbound</option>
+        <option>Outbound</option>
+        <option>PR</option>
+        <option>Reverse</option>
+        <option>WH2.0</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>
+        Checked By <span class="required">*</span>
+      </label>
+
+      <select id="sessionCheckedBy">
+        <option value="">Select Name</option>
+        <option>AISYAH</option>
+        <option>HIDAYAH</option>
+        <option>NANA</option>
+        <option>IZZAH</option>
+        <option>NAQIU</option>
+      </select>
+    </div>
+
+    <button
+      class="primary-button"
+      type="button"
+      onclick="startAuditSession()">
+      START AUDIT
+    </button>
+
+    <div class="small-note">
+      Condition will default to GOOD for each scanned asset.
+    </div>
+
+  </div>
+
+
+  <!-- =========================
+       ACTIVE SESSION
+  ========================== -->
+  <div id="sessionSummary" class="session-summary">
+
+    <strong>● AUDIT SESSION ACTIVE</strong>
+
+    <div class="session-grid">
+
+      <div class="session-item">
+        Found At<br>
+        <strong id="activeFoundAt">-</strong>
+      </div>
+
+      <div class="session-item">
+        Checked By<br>
+        <strong id="activeCheckedBy">-</strong>
+      </div>
+
+    </div>
+
+    <div class="audit-count">
+      Session Audited:
+      <strong id="sessionCount">0</strong>
+    </div>
+
+  </div>
+
+
+  <!-- =========================
+       AUDIT AREA
+  ========================== -->
+  <div id="auditArea" class="card">
+
+    <h2 class="section-title">Scan Asset</h2>
+
+    <div class="field">
+
+      <label>
+        Scan / Manual Value <span class="required">*</span>
+      </label>
+
+      <div class="scan-row">
+
+        <input
+          id="scanValue"
+          type="text"
+          placeholder="Scan or enter value"
+          autocomplete="off"
+        >
+
+        <button
+          class="scan-button"
+          type="button"
+          onclick="startScanner()">
+          📷
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <div id="reader"></div>
+
+    <div id="lookupStatus" class="status"></div>
+
+
+    <!-- ASSET DETAILS -->
+    <div id="assetBox" class="asset-box">
+
+      <div class="field">
+        <label>Asset ID</label>
+        <input id="assetId" readonly>
+      </div>
+
+      <div class="field">
+        <label>Equipment Type</label>
+        <input id="equipmentType" readonly>
+      </div>
+
+      <div class="field">
+        <label>Owner Department</label>
+        <input id="ownerDepartment" readonly>
+      </div>
+
+    </div>
+
+
+    <!-- RESULT -->
+    <div id="resultBox" class="result-box">
+      <div id="resultTitle" class="result-title"></div>
+    </div>
+
+
+    <!-- EXCEPTION OVERRIDE -->
+    <div id="exceptionArea" class="exception-area">
+
+      <label>Asset Condition</label>
+
+      <div class="condition-buttons">
+
+        <button
+          id="repairButton"
+          class="condition-button"
+          type="button"
+          onclick="setExceptionCondition('Repair')">
+          REPAIR
+        </button>
+
+        <button
+          id="damagedButton"
+          class="condition-button"
+          type="button"
+          onclick="setExceptionCondition('Damaged')">
+          DAMAGED
+        </button>
+
+      </div>
+
+      <div class="field">
+        <label>Remarks</label>
+        <textarea
+          id="remarks"
+          placeholder="Enter remarks if required"
+        ></textarea>
+      </div>
 
       <button
-        class="scan-button"
+        id="exceptionSaveButton"
+        class="primary-button"
         type="button"
-        onclick="startScanner()">
-        📷
+        onclick="saveExceptionAudit()">
+        SAVE EXCEPTION
       </button>
-    </div>
-  </div>
 
-  <div id="reader"></div>
-
-  <div id="lookupStatus" class="status"></div>
-
-  <div id="assetBox" class="asset-box">
-
-    <div class="field">
-      <label>Asset ID</label>
-      <input id="assetId" readonly>
     </div>
 
-    <div class="field">
-      <label>Equipment Type</label>
-      <input id="equipmentType" readonly>
-    </div>
 
-    <div class="field">
-      <label>Owner Department</label>
-      <input id="ownerDepartment" readonly>
-    </div>
+    <div id="saveStatus" class="status"></div>
+
+
+    <button
+      id="manualSaveButton"
+      class="secondary-button manual-save"
+      type="button"
+      onclick="saveGoodAudit()">
+      SAVE AS GOOD
+    </button>
+
+
+    <button
+      class="danger-button change-session"
+      type="button"
+      onclick="changeAuditSession()">
+      CHANGE / END AUDIT AREA
+    </button>
 
   </div>
 
-  <div class="field">
-    <label>
-      Found At <span class="required">*</span>
-    </label>
-
-    <select id="foundAt" onchange="calculateResult()">
-      <option value="">Select Department</option>
-      <option>AMR</option>
-      <option>APD</option>
-      <option>FFM</option>
-      <option>GF</option>
-      <option>Inbound</option>
-      <option>Outbound</option>
-      <option>PR</option>
-      <option>Reverse</option>
-      <option>WH2.0</option>
-    </select>
-  </div>
-
-  <div class="field">
-    <label>
-      Condition <span class="required">*</span>
-    </label>
-
-    <select id="condition" onchange="calculateResult()">
-      <option value="">Select Condition</option>
-      <option>Good</option>
-      <option>Repair</option>
-      <option>Damaged</option>
-    </select>
-  </div>
-
-  <div class="field">
-    <label>Audit Result</label>
-    <input
-      id="auditResult"
-      class="audit-result"
-      readonly
-    >
-  </div>
-
-  <div class="field">
-    <label>
-      Checked By <span class="required">*</span>
-    </label>
-
-    <select id="checkedBy">
-      <option value="">Select Name</option>
-      <option>AISYAH</option>
-      <option>HIDAYAH</option>
-      <option>NANA</option>
-      <option>IZZAH</option>
-      <option>NAQIU</option>
-    </select>
-  </div>
-
-  <div class="field">
-    <label>Remarks</label>
-    <textarea
-      id="remarks"
-      placeholder="Enter remarks if any"
-    ></textarea>
-  </div>
-
-  <div id="saveStatus" class="status"></div>
-
-  <button
-    id="saveButton"
-    class="save-button"
-    type="button"
-    onclick="saveAudit()">
-    SAVE AUDIT
-  </button>
-
-</div>
 </div>
 
 
@@ -318,15 +559,111 @@
 const API_URL =
   "https://script.google.com/macros/s/AKfycbzoFtzAXhSQuiiQOLsnWm1wR3m-57uFaoOQEeT9xxiUSl-ADIi0jXok8y1d7PL0L8NL/exec";
 
+
 let scanner = null;
+
+let sessionActive = false;
+let sessionFoundAt = "";
+let sessionCheckedBy = "";
+let sessionCount = 0;
+
 let currentAssetFound = false;
+let currentAsset = null;
+let currentCondition = "Good";
+
+let processingAsset = false;
 
 
-/* ================================
+/* =========================================
+   AUDIT SESSION
+========================================= */
+
+function startAuditSession() {
+
+  const foundAt =
+    document.getElementById("sessionFoundAt").value;
+
+  const checkedBy =
+    document.getElementById("sessionCheckedBy").value;
+
+  if (!foundAt || !checkedBy) {
+    alert("Please select Found At and Checked By.");
+    return;
+  }
+
+  sessionFoundAt = foundAt;
+  sessionCheckedBy = checkedBy;
+  sessionActive = true;
+  sessionCount = 0;
+
+  document.getElementById("activeFoundAt").textContent =
+    sessionFoundAt;
+
+  document.getElementById("activeCheckedBy").textContent =
+    sessionCheckedBy;
+
+  document.getElementById("sessionCount").textContent =
+    sessionCount;
+
+  document.getElementById("setupCard").style.display =
+    "none";
+
+  document.getElementById("sessionSummary").style.display =
+    "block";
+
+  document.getElementById("auditArea").style.display =
+    "block";
+
+  prepareNextAsset();
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
+
+
+function changeAuditSession() {
+
+  if (processingAsset) {
+    alert("Please wait until the current audit is completed.");
+    return;
+  }
+
+  stopScanner();
+
+  sessionActive = false;
+  sessionFoundAt = "";
+  sessionCheckedBy = "";
+
+  document.getElementById("setupCard").style.display =
+    "block";
+
+  document.getElementById("sessionSummary").style.display =
+    "none";
+
+  document.getElementById("auditArea").style.display =
+    "none";
+
+  document.getElementById("sessionFoundAt").value = "";
+  document.getElementById("sessionCheckedBy").value = "";
+
+  resetCurrentAsset();
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
+
+
+/* =========================================
    SCANNER
-================================ */
+========================================= */
 
 function startScanner() {
+
+  if (!sessionActive || processingAsset) return;
 
   clearLookupStatus();
 
@@ -345,12 +682,20 @@ function startScanner() {
 
     function(decodedText) {
 
+      if (processingAsset) return;
+
       const value = decodedText.trim();
 
-      document.getElementById("scanValue").value = value;
+      if (!value) return;
+
+      processingAsset = true;
+
+      document.getElementById("scanValue").value =
+        value;
 
       stopScanner();
-      lookupAsset(value);
+
+      lookupAndProcessAsset(value);
     },
 
     function() {
@@ -375,349 +720,640 @@ function stopScanner() {
 
   if (!scanner) return;
 
-  scanner.stop()
+  const activeScanner = scanner;
+  scanner = null;
+
+  activeScanner.stop()
     .then(function() {
-      scanner.clear();
-      scanner = null;
+      activeScanner.clear();
     })
     .catch(function() {
-      scanner = null;
+      try {
+        activeScanner.clear();
+      } catch (e) {}
     });
 }
 
 
-/* ================================
-   MASTER ASSET LOOKUP
-================================ */
+/* =========================================
+   LOOKUP + DUPLICATE CHECK
+========================================= */
 
-async function lookupAsset(value) {
+async function lookupAndProcessAsset(value) {
 
   value = String(value || "").trim();
 
-  if (!value) return;
+  if (!value) {
+    processingAsset = false;
+    return;
+  }
 
-  currentAssetFound = false;
-
-  document.getElementById("assetBox").style.display = "none";
-  document.getElementById("auditResult").value = "";
+  resetAssetDisplayOnly();
 
   showLookupStatus(
-    "Checking Master Asset...",
+    "Checking asset...",
     "loading"
   );
 
   try {
 
-    const url =
+    const lookupUrl =
       API_URL +
       "?action=lookup&value=" +
       encodeURIComponent(value);
 
-    const response = await fetch(url);
+    const response =
+      await fetch(lookupUrl, {
+        cache: "no-store"
+      });
 
     if (!response.ok) {
       throw new Error("Lookup failed.");
     }
 
-    const asset = await response.json();
+    const asset =
+      await response.json();
 
-    if (asset.found) {
+    currentAsset = asset;
+    currentAssetFound = !!asset.found;
+
+    if (!asset.found) {
 
       document.getElementById("assetId").value =
-        asset.assetId || "";
+        "UNKNOWN";
 
       document.getElementById("equipmentType").value =
-        asset.equipmentType || "";
+        "";
 
       document.getElementById("ownerDepartment").value =
-        asset.ownerDepartment || "";
+        "";
 
-      // Check if this asset has already been audited this month
-const duplicateUrl =
-  API_URL +
-  "?action=checkDuplicate&value=" +
-  encodeURIComponent(value);
-
-const duplicateResponse = await fetch(duplicateUrl);
-const duplicate = await duplicateResponse.json();
-
-if (duplicate.alreadyAudited) {
-
-  showLookupStatus(
-    "⚠️ ALREADY AUDITED — " +
-    duplicate.assetId +
-    " has already been audited for " +
-    duplicate.auditMonth +
-    ".",
-    "error"
-  );
-
-  currentAssetFound = false;
-
-} else {
-
-  showLookupStatus(
-    "Asset found successfully.",
-    "success"
-  );
-
-  currentAssetFound = true;
-}
-
-    } else {
-
-      document.getElementById("assetId").value = "UNKNOWN";
-      document.getElementById("equipmentType").value = "";
-      document.getElementById("ownerDepartment").value = "";
+      document.getElementById("assetBox").style.display =
+        "block";
 
       showLookupStatus(
-        "UNKNOWN ASSET",
+        "UNKNOWN ASSET — not automatically saved.",
         "error"
       );
+
+      showManualSaveButton();
+
+      processingAsset = false;
+      return;
     }
+
+
+    document.getElementById("assetId").value =
+      asset.assetId || "";
+
+    document.getElementById("equipmentType").value =
+      asset.equipmentType || "";
+
+    document.getElementById("ownerDepartment").value =
+      asset.ownerDepartment || "";
 
     document.getElementById("assetBox").style.display =
       "block";
 
-    calculateResult();
+
+    /* DUPLICATE CHECK */
+
+    const duplicateUrl =
+      API_URL +
+      "?action=checkDuplicate&value=" +
+      encodeURIComponent(value);
+
+    const duplicateResponse =
+      await fetch(duplicateUrl, {
+        cache: "no-store"
+      });
+
+    if (!duplicateResponse.ok) {
+      throw new Error("Duplicate check failed.");
+    }
+
+    const duplicate =
+      await duplicateResponse.json();
+
+    if (duplicate.alreadyAudited) {
+
+      showLookupStatus(
+        "⚠️ ALREADY AUDITED — " +
+        duplicate.assetId +
+        " has already been audited for " +
+        duplicate.auditMonth +
+        ".",
+        "error"
+      );
+
+      processingAsset = false;
+
+      setTimeout(function() {
+        prepareNextAsset();
+      }, 1800);
+
+      return;
+    }
+
+
+    /* DETERMINE RESULT */
+
+    const owner =
+      asset.ownerDepartment || "";
+
+    if (owner === sessionFoundAt) {
+
+      showResult(
+        "PASS",
+        "result-pass"
+      );
+
+    } else {
+
+      showResult(
+        "WRONG LOCATION",
+        "result-wrong"
+      );
+    }
+
+
+    showLookupStatus(
+      asset.assetId + " detected.",
+      "success"
+    );
+
+
+    /*
+      Small delay gives staff a moment to see
+      the detected asset before automatic save.
+    */
+
+    setTimeout(function() {
+
+      if (processingAsset) {
+        saveGoodAudit();
+      }
+
+    }, 500);
+
 
   } catch (error) {
 
     console.error(error);
 
     showLookupStatus(
-      "Unable to connect to Master Asset.",
+      "Unable to process asset. Please try again.",
       "error"
     );
+
+    processingAsset = false;
   }
 }
 
 
-/* Manual typing */
-document
-  .getElementById("scanValue")
-  .addEventListener("change", function() {
+/* =========================================
+   AUTO SAVE GOOD ASSET
+========================================= */
 
-    const value = this.value.trim();
+async function saveGoodAudit() {
 
-    if (value) {
-      lookupAsset(value);
-    }
-  });
-
-
-/* ================================
-   AUDIT RESULT
-================================ */
-
-function calculateResult() {
+  if (!sessionActive) return;
 
   const scanValue =
     document.getElementById("scanValue").value.trim();
 
-  const owner =
-    document.getElementById("ownerDepartment").value;
-
-  const foundAt =
-    document.getElementById("foundAt").value;
-
-  const condition =
-    document.getElementById("condition").value;
-
-  const result =
-    document.getElementById("auditResult");
-
-  if (!scanValue || !foundAt || !condition) {
-    result.value = "";
+  if (!scanValue) {
+    processingAsset = false;
     return;
   }
 
-  if (!currentAssetFound) {
-    result.value = "UNKNOWN ASSET";
-    return;
-  }
+  currentCondition = "Good";
 
-  if (
-    condition === "Repair" ||
-    condition === "Damaged"
-  ) {
-    result.value = "REPAIR / DAMAGED";
-    return;
-  }
-
-  if (
-    condition === "Good" &&
-    owner === foundAt
-  ) {
-    result.value = "PASS";
-    return;
-  }
-
-  if (
-    condition === "Good" &&
-    owner !== foundAt
-  ) {
-    result.value = "WRONG LOCATION";
-  }
+  await submitAudit(
+    scanValue,
+    "Good",
+    ""
+  );
 }
 
 
-/* ================================
-   SAVE AUDIT
-================================ */
+/* =========================================
+   EXCEPTION CONDITION
+========================================= */
 
-async function saveAudit() {
+function setExceptionCondition(condition) {
+
+  currentCondition = condition;
+
+  document
+    .getElementById("repairButton")
+    .classList.remove("active");
+
+  document
+    .getElementById("damagedButton")
+    .classList.remove("active");
+
+  if (condition === "Repair") {
+
+    document
+      .getElementById("repairButton")
+      .classList.add("active");
+
+  }
+
+  if (condition === "Damaged") {
+
+    document
+      .getElementById("damagedButton")
+      .classList.add("active");
+
+  }
+
+  document.getElementById("exceptionArea").style.display =
+    "block";
+
+  showResult(
+    "REPAIR / DAMAGED",
+    "result-repair"
+  );
+}
+
+
+async function saveExceptionAudit() {
 
   const scanValue =
     document.getElementById("scanValue").value.trim();
-
-  const foundAt =
-    document.getElementById("foundAt").value;
-
-  const condition =
-    document.getElementById("condition").value;
-
-  const checkedBy =
-    document.getElementById("checkedBy").value;
 
   const remarks =
     document.getElementById("remarks").value.trim();
 
   if (
-    !scanValue ||
-    !foundAt ||
-    !condition ||
-    !checkedBy
+    currentCondition !== "Repair" &&
+    currentCondition !== "Damaged"
   ) {
 
-    showSaveStatus(
-      "Please complete all required fields.",
-      "error"
-    );
-
+    alert("Please select Repair or Damaged.");
     return;
   }
 
-  const button =
-    document.getElementById("saveButton");
+  processingAsset = true;
 
-  button.disabled = true;
-  button.textContent = "SAVING...";
+  await submitAudit(
+    scanValue,
+    currentCondition,
+    remarks
+  );
+}
+
+
+/* =========================================
+   SUBMIT AUDIT
+========================================= */
+
+async function submitAudit(
+  scanValue,
+  condition,
+  remarks
+) {
+
+  if (
+    !scanValue ||
+    !sessionFoundAt ||
+    !sessionCheckedBy
+  ) {
+
+    showSaveStatus(
+      "Audit session information is incomplete.",
+      "error"
+    );
+
+    processingAsset = false;
+    return;
+  }
+
 
   showSaveStatus(
-    "Saving audit...",
+    "Saving...",
     "loading"
   );
+
 
   try {
 
     const saveUrl =
-  API_URL +
-  "?action=save" +
-  "&scanValue=" + encodeURIComponent(scanValue) +
-  "&foundAt=" + encodeURIComponent(foundAt) +
-  "&condition=" + encodeURIComponent(condition) +
-  "&checkedBy=" + encodeURIComponent(checkedBy) +
-  "&remarks=" + encodeURIComponent(remarks);
+      API_URL +
+      "?action=save" +
+      "&scanValue=" +
+      encodeURIComponent(scanValue) +
+      "&foundAt=" +
+      encodeURIComponent(sessionFoundAt) +
+      "&condition=" +
+      encodeURIComponent(condition) +
+      "&checkedBy=" +
+      encodeURIComponent(sessionCheckedBy) +
+      "&remarks=" +
+      encodeURIComponent(remarks || "");
 
-const response = await fetch(saveUrl);
+
+    const response =
+      await fetch(saveUrl, {
+        cache: "no-store"
+      });
+
 
     if (!response.ok) {
       throw new Error("Save request failed.");
     }
 
-    const result = await response.json();
+
+    const result =
+      await response.json();
+
 
     if (!result.success) {
+
       throw new Error(
-        result.error || "Unable to save audit."
+        result.error ||
+        "Unable to save audit."
       );
     }
 
+
+    sessionCount++;
+
+    document.getElementById("sessionCount").textContent =
+      sessionCount;
+
+
     showSaveStatus(
-      "Audit saved successfully.",
+      "✓ SAVED — Ready for next asset",
       "success"
     );
 
+
+    /*
+      Keep Found At + Checked By.
+      Only reset current asset.
+    */
+
     setTimeout(function() {
-      resetForm();
-    }, 1000);
+      prepareNextAsset();
+    }, 650);
+
 
   } catch (error) {
 
     console.error(error);
 
+    const message =
+      error && error.message
+        ? error.message
+        : "Unable to save audit.";
+
     showSaveStatus(
-      "Unable to save audit. Please try again.",
+      message,
       "error"
     );
 
-  } finally {
-
-    button.disabled = false;
-    button.textContent = "SAVE AUDIT";
+    processingAsset = false;
   }
 }
 
 
-/* ================================
-   RESET FOR NEXT ASSET
-================================ */
+/* =========================================
+   PREPARE NEXT ASSET
+========================================= */
 
-function resetForm() {
+function prepareNextAsset() {
+
+  resetCurrentAsset();
+
+  processingAsset = false;
+
+  /*
+    Camera does NOT automatically open here.
+    Tap camera button for next scan.
+    This avoids iPhone camera permission /
+    browser instability from repeated forced opens.
+  */
+
+  document.getElementById("scanValue").focus();
+}
+
+
+function resetCurrentAsset() {
 
   document.getElementById("scanValue").value = "";
   document.getElementById("assetId").value = "";
   document.getElementById("equipmentType").value = "";
   document.getElementById("ownerDepartment").value = "";
-
-  document.getElementById("foundAt").value = "";
-  document.getElementById("condition").value = "";
-  document.getElementById("auditResult").value = "";
-  document.getElementById("checkedBy").value = "";
   document.getElementById("remarks").value = "";
 
   document.getElementById("assetBox").style.display =
     "none";
 
+  document.getElementById("resultBox").style.display =
+    "none";
+
+  document.getElementById("exceptionArea").style.display =
+    "none";
+
+  document.getElementById("manualSaveButton").style.display =
+    "none";
+
+  document
+    .getElementById("repairButton")
+    .classList.remove("active");
+
+  document
+    .getElementById("damagedButton")
+    .classList.remove("active");
+
   currentAssetFound = false;
+  currentAsset = null;
+  currentCondition = "Good";
 
   clearLookupStatus();
   clearSaveStatus();
-
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
 }
 
 
-/* ================================
+function resetAssetDisplayOnly() {
+
+  document.getElementById("assetId").value = "";
+  document.getElementById("equipmentType").value = "";
+  document.getElementById("ownerDepartment").value = "";
+  document.getElementById("remarks").value = "";
+
+  document.getElementById("assetBox").style.display =
+    "none";
+
+  document.getElementById("resultBox").style.display =
+    "none";
+
+  document.getElementById("exceptionArea").style.display =
+    "none";
+
+  document.getElementById("manualSaveButton").style.display =
+    "none";
+
+  currentCondition = "Good";
+}
+
+
+/* =========================================
+   MANUAL INPUT
+========================================= */
+
+document
+  .getElementById("scanValue")
+  .addEventListener("change", function() {
+
+    if (
+      !sessionActive ||
+      processingAsset
+    ) {
+      return;
+    }
+
+    const value =
+      this.value.trim();
+
+    if (value) {
+
+      processingAsset = true;
+
+      lookupAndProcessAsset(value);
+    }
+  });
+
+
+document
+  .getElementById("scanValue")
+  .addEventListener("keydown", function(event) {
+
+    if (event.key === "Enter") {
+
+      event.preventDefault();
+
+      if (
+        !sessionActive ||
+        processingAsset
+      ) {
+        return;
+      }
+
+      const value =
+        this.value.trim();
+
+      if (value) {
+
+        processingAsset = true;
+
+        lookupAndProcessAsset(value);
+      }
+    }
+  });
+
+
+/* =========================================
+   RESULT DISPLAY
+========================================= */
+
+function showResult(text, className) {
+
+  const box =
+    document.getElementById("resultBox");
+
+  const title =
+    document.getElementById("resultTitle");
+
+  box.className =
+    "result-box " + className;
+
+  box.style.display =
+    "block";
+
+  title.textContent =
+    text;
+}
+
+
+/* =========================================
+   UNKNOWN ASSET MANUAL SAVE
+========================================= */
+
+function showManualSaveButton() {
+
+  /*
+    Unknown assets should NOT auto-save.
+    Staff can review before deciding.
+  */
+
+  const button =
+    document.getElementById("manualSaveButton");
+
+  button.style.display =
+    "block";
+
+  button.textContent =
+    "SAVE UNKNOWN ASSET";
+}
+
+
+/* =========================================
    STATUS
-================================ */
+========================================= */
 
 function showLookupStatus(message, type) {
-  const box = document.getElementById("lookupStatus");
-  box.textContent = message;
-  box.className = "status " + type;
+
+  const box =
+    document.getElementById("lookupStatus");
+
+  box.textContent =
+    message;
+
+  box.className =
+    "status " + type;
 }
+
 
 function clearLookupStatus() {
-  const box = document.getElementById("lookupStatus");
-  box.textContent = "";
-  box.className = "status";
+
+  const box =
+    document.getElementById("lookupStatus");
+
+  box.textContent =
+    "";
+
+  box.className =
+    "status";
 }
+
 
 function showSaveStatus(message, type) {
-  const box = document.getElementById("saveStatus");
-  box.textContent = message;
-  box.className = "status " + type;
+
+  const box =
+    document.getElementById("saveStatus");
+
+  box.textContent =
+    message;
+
+  box.className =
+    "status " + type;
 }
 
+
 function clearSaveStatus() {
-  const box = document.getElementById("saveStatus");
-  box.textContent = "";
-  box.className = "status";
+
+  const box =
+    document.getElementById("saveStatus");
+
+  box.textContent =
+    "";
+
+  box.className =
+    "status";
 }
 
 </script>
