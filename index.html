@@ -572,13 +572,16 @@ let currentAsset = null;
 let currentCondition = "Good";
 
 let processingAsset = false;
-
+let assetCache = {};
+let auditedCache = new Set();
+let auditDataLoaded = false;
+let currentAuditMonth = "";
 
 /* =========================================
    AUDIT SESSION
 ========================================= */
 
-function startAuditSession() {
+async function startAuditSession() {
 
   const foundAt =
     document.getElementById("sessionFoundAt").value;
@@ -591,35 +594,116 @@ function startAuditSession() {
     return;
   }
 
-  sessionFoundAt = foundAt;
-  sessionCheckedBy = checkedBy;
-  sessionActive = true;
-  sessionCount = 0;
+  const startButton =
+    document.querySelector("#setupCard .primary-button");
 
-  document.getElementById("activeFoundAt").textContent =
-    sessionFoundAt;
+  startButton.disabled = true;
+  startButton.textContent = "PREPARING AUDIT...";
 
-  document.getElementById("activeCheckedBy").textContent =
-    sessionCheckedBy;
+  try {
 
-  document.getElementById("sessionCount").textContent =
-    sessionCount;
+    /*
+     * Load Master Asset + current month's
+     * audited Asset IDs ONCE.
+     */
+    const response = await fetch(
+      API_URL + "?action=loadAuditData",
+      { cache: "no-store" }
+    );
 
-  document.getElementById("setupCard").style.display =
-    "none";
+    if (!response.ok) {
+      throw new Error("Unable to load audit data.");
+    }
 
-  document.getElementById("sessionSummary").style.display =
-    "block";
+    const data = await response.json();
 
-  document.getElementById("auditArea").style.display =
-    "block";
+    if (!data.success) {
+      throw new Error(
+        data.error || "Unable to load audit data."
+      );
+    }
 
-  prepareNextAsset();
 
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
+    /* Build fast lookup cache */
+
+    assetCache = {};
+
+    data.assets.forEach(function(asset) {
+
+      if (asset.scanValue) {
+        assetCache[
+          String(asset.scanValue).trim().toLowerCase()
+        ] = asset;
+      }
+
+      if (asset.assetId) {
+        assetCache[
+          String(asset.assetId).trim().toLowerCase()
+        ] = asset;
+      }
+
+    });
+
+
+    /* Build duplicate cache */
+
+    auditedCache = new Set(
+      (data.auditedAssetIds || []).map(function(id) {
+        return String(id).trim().toLowerCase();
+      })
+    );
+
+    currentAuditMonth =
+      data.auditMonth || "";
+
+    auditDataLoaded = true;
+
+
+    /* Start session */
+
+    sessionFoundAt = foundAt;
+    sessionCheckedBy = checkedBy;
+    sessionActive = true;
+    sessionCount = 0;
+
+    document.getElementById("activeFoundAt").textContent =
+      sessionFoundAt;
+
+    document.getElementById("activeCheckedBy").textContent =
+      sessionCheckedBy;
+
+    document.getElementById("sessionCount").textContent =
+      "0";
+
+    document.getElementById("setupCard").style.display =
+      "none";
+
+    document.getElementById("sessionSummary").style.display =
+      "block";
+
+    document.getElementById("auditArea").style.display =
+      "block";
+
+    prepareNextAsset();
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      "Unable to prepare audit. Please try again."
+    );
+
+  } finally {
+
+    startButton.disabled = false;
+    startButton.textContent = "START AUDIT";
+  }
 }
 
 
@@ -739,7 +823,7 @@ function stopScanner() {
    LOOKUP + DUPLICATE CHECK
 ========================================= */
 
-async function lookupAndProcessAsset(value) {
+function lookupAndProcessAsset(value) {
 
   value = String(value || "").trim();
 
@@ -750,167 +834,148 @@ async function lookupAndProcessAsset(value) {
 
   resetAssetDisplayOnly();
 
-  showLookupStatus(
-    "Checking asset...",
-    "loading"
-  );
-
-  try {
-
-    const lookupUrl =
-      API_URL +
-      "?action=lookup&value=" +
-      encodeURIComponent(value);
-
-    const response =
-      await fetch(lookupUrl, {
-        cache: "no-store"
-      });
-
-    if (!response.ok) {
-      throw new Error("Lookup failed.");
-    }
-
-    const asset =
-      await response.json();
-
-    currentAsset = asset;
-    currentAssetFound = !!asset.found;
-
-    if (!asset.found) {
-
-      document.getElementById("assetId").value =
-        "UNKNOWN";
-
-      document.getElementById("equipmentType").value =
-        "";
-
-      document.getElementById("ownerDepartment").value =
-        "";
-
-      document.getElementById("assetBox").style.display =
-        "block";
-
-      showLookupStatus(
-        "UNKNOWN ASSET — not automatically saved.",
-        "error"
-      );
-
-      showManualSaveButton();
-
-      processingAsset = false;
-      return;
-    }
-
-
-    document.getElementById("assetId").value =
-      asset.assetId || "";
-
-    document.getElementById("equipmentType").value =
-      asset.equipmentType || "";
-
-    document.getElementById("ownerDepartment").value =
-      asset.ownerDepartment || "";
-
-    document.getElementById("assetBox").style.display =
-      "block";
-
-
-    /* DUPLICATE CHECK */
-
-    const duplicateUrl =
-      API_URL +
-      "?action=checkDuplicate&value=" +
-      encodeURIComponent(value);
-
-    const duplicateResponse =
-      await fetch(duplicateUrl, {
-        cache: "no-store"
-      });
-
-    if (!duplicateResponse.ok) {
-      throw new Error("Duplicate check failed.");
-    }
-
-    const duplicate =
-      await duplicateResponse.json();
-
-    /* DUPLICATE CHECK — already included in lookup */
-
-if (asset.alreadyAudited) {
-
-  showLookupStatus(
-    "⚠️ ALREADY AUDITED — " +
-    asset.assetId +
-    " has already been audited for " +
-    asset.auditMonth +
-    ".",
-    "error"
-  );
-
-  processingAsset = false;
-
-  setTimeout(function() {
-    prepareNextAsset();
-  }, 1800);
-
-  return;
-}
-
-    /* DETERMINE RESULT */
-
-    const owner =
-      asset.ownerDepartment || "";
-
-    if (owner === sessionFoundAt) {
-
-      showResult(
-        "PASS",
-        "result-pass"
-      );
-
-    } else {
-
-      showResult(
-        "WRONG LOCATION",
-        "result-wrong"
-      );
-    }
-
+  if (!auditDataLoaded) {
 
     showLookupStatus(
-      asset.assetId + " detected.",
-      "success"
-    );
-
-
-    /*
-      Small delay gives staff a moment to see
-      the detected asset before automatic save.
-    */
-
-    setTimeout(function() {
-
-      if (processingAsset) {
-        saveGoodAudit();
-      }
-
-    }, 500);
-
-
-  } catch (error) {
-
-    console.error(error);
-
-    showLookupStatus(
-      "Unable to process asset. Please try again.",
+      "Audit data is not ready.",
       "error"
     );
 
     processingAsset = false;
+    return;
   }
-}
 
+
+  /* =====================================
+     LOOKUP DIRECTLY FROM PHONE CACHE
+     NO APPS SCRIPT REQUEST
+  ===================================== */
+
+  const key = value.toLowerCase();
+
+  const asset = assetCache[key];
+
+
+  /* UNKNOWN ASSET */
+
+  if (!asset) {
+
+    currentAsset = null;
+    currentAssetFound = false;
+
+    document.getElementById("assetId").value =
+      "UNKNOWN";
+
+    document.getElementById("equipmentType").value =
+      "";
+
+    document.getElementById("ownerDepartment").value =
+      "";
+
+    document.getElementById("assetBox").style.display =
+      "block";
+
+    showLookupStatus(
+      "UNKNOWN ASSET — not automatically saved.",
+      "error"
+    );
+
+    showManualSaveButton();
+
+    processingAsset = false;
+    return;
+  }
+
+
+  /* ASSET FOUND */
+
+  currentAsset = asset;
+  currentAssetFound = true;
+
+  document.getElementById("assetId").value =
+    asset.assetId || "";
+
+  document.getElementById("equipmentType").value =
+    asset.equipmentType || "";
+
+  document.getElementById("ownerDepartment").value =
+    asset.ownerDepartment || "";
+
+  document.getElementById("assetBox").style.display =
+    "block";
+
+
+  /* =====================================
+     DUPLICATE CHECK FROM PHONE CACHE
+  ===================================== */
+
+  const assetIdKey =
+    String(asset.assetId || "")
+      .trim()
+      .toLowerCase();
+
+  if (auditedCache.has(assetIdKey)) {
+
+    showLookupStatus(
+      "⚠️ ALREADY AUDITED — " +
+      asset.assetId +
+      " has already been audited for " +
+      currentAuditMonth +
+      ".",
+      "error"
+    );
+
+    processingAsset = false;
+
+    setTimeout(function() {
+      prepareNextAsset();
+    }, 1500);
+
+    return;
+  }
+
+
+  /* =====================================
+     DETERMINE AUDIT RESULT
+  ===================================== */
+
+  const owner =
+    asset.ownerDepartment || "";
+
+  if (owner === sessionFoundAt) {
+
+    showResult(
+      "PASS",
+      "result-pass"
+    );
+
+  } else {
+
+    showResult(
+      "WRONG LOCATION",
+      "result-wrong"
+    );
+  }
+
+
+  showLookupStatus(
+    "✓ " + asset.assetId + " detected",
+    "success"
+  );
+
+
+  /* =====================================
+     AUTO SAVE
+  ===================================== */
+
+  setTimeout(function() {
+
+    if (processingAsset) {
+      saveGoodAudit();
+    }
+
+  }, 350);
+}
 
 /* =========================================
    AUTO SAVE GOOD ASSET
@@ -1079,6 +1144,14 @@ async function submitAudit(
       );
     }
 
+    if (currentAsset && currentAsset.assetId) {
+
+  auditedCache.add(
+    String(currentAsset.assetId)
+      .trim()
+      .toLowerCase()
+  );
+}
 
     sessionCount++;
 
